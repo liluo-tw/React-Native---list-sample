@@ -8,7 +8,8 @@ import {
   StatusBar,
   ListView,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  SectionList,
 } from 'react-native';
 
 import Tabbar from 'react-native-tabbar'
@@ -32,7 +33,22 @@ let tabs = [
     key: "Other",
     name: "Other"
   }
-]
+];
+
+const sectionlistSource = [
+            {key: 'SECTION 1', data: [
+              {collapsed: false, title: 'Item In Header Section', text: 'Section s1', key: '0'},
+            ]},
+            {key: 'SECTION 2', data: [
+              {collapsed: false, noImage: true, title: '1st item', text: 'Section s2', key: '0'},
+              {collapsed: false, noImage: true, title: '2nd item', text: 'Section s2', key: '1'},
+              {collapsed: false, noImage: true, title: '3nd item', text: 'Section s2', key: '2'},
+            ]},
+            {key: 'SECTION 3', data: [
+              {collapsed: false, noImage: true, title: '1st item', text: 'Section s3', key: '0'},
+              {collapsed: false, noImage: true, title: '2nd item', text: 'Section s3', key: '1'},
+            ]},
+          ];
 
 export default class Listing extends Component {
 
@@ -42,7 +58,8 @@ export default class Listing extends Component {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state = {
       tab: 'ListView',
-      dataSource: ds.cloneWithRows(this.genRows())
+      dataSource: ds.cloneWithRows(this.genRows()),
+      sections: sectionlistSource
     };
   }
 
@@ -53,15 +70,9 @@ export default class Listing extends Component {
           <Text style={styles.navigationTitle}>列表示例</Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollViewContainer}
-          style={styles.scrollView}
-          onScroll={this.onScroll}
-          scrollEventThrottle={16}>
           <View style={{ paddingTop: 30 }}>
             {this.renderContent()}
           </View>
-        </ScrollView>
         <Tabbar show={true}
                 disable={false}
                 ref={(ref) => this.tabarRef = ref}
@@ -72,16 +83,6 @@ export default class Listing extends Component {
     );
   }
 
-  cell(rowData, rowID, prefix) {
-    return (
-      <View style={styles.cellContainer}>
-        <Image style={styles.cellIcon} source={pic} />
-        <Text style={styles.cellTitle}>
-          {prefix + rowData.text + rowID}
-        </Text>
-      </View>
-    )
-  }
 
     onScroll = (evt) => {
       const y = evt.nativeEvent.contentOffset.y
@@ -97,7 +98,10 @@ export default class Listing extends Component {
         <View style={{ flex: 1, flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'green' }}>
         {
           tabs.map((it) => (
-            <TouchableOpacity style={[styles.tabItem, this.state.tab === it.key? styles.selectedTab: '']} onPress={() => this.onTabSelect(it.key)}>
+            <TouchableOpacity
+              style={[styles.tabItem, this.state.tab === it.key? styles.selectedTab: '']}
+              onPress={() => this.onTabSelect(it.key)}
+            >
               <View>
                 <Text style={{color: 'white'}}>{it.name.toUpperCase()}</Text>
               </View>
@@ -110,10 +114,16 @@ export default class Listing extends Component {
 
     renderContent() {
       const { tab } = this.state
+
+
       let content
+
       switch(tab) {
         case 'ListView':
-          content = <Text>This is the content 1</Text>
+          content = <ListView
+                       dataSource={this.state.dataSource}
+                       renderRow={(rowData, sectionID, rowID) => this.cell(rowData, rowID, 'listView')}
+                    />
           break
         case 'FlatList':
           content = <FlatListPage
@@ -122,7 +132,11 @@ export default class Listing extends Component {
           />
           break
         case 'SectionList':
-          content = <Text>This is the content 3</Text>
+          content = <SectionList
+                      renderItem={({item, index}) => this.cell(item, index, tab)}
+                      renderSectionHeader={({section}) => <Text style={{height: 40, marginLeft:10}}>{section.key}</Text> }
+                      sections={this.state.sections}
+                    />
           break
         case 'item4':
           content = <Text>This is the content 4</Text>
@@ -134,6 +148,20 @@ export default class Listing extends Component {
 
       return content
     }
+
+cell(rowData, rowID, prefix) {
+  return (
+    rowData.collapsed ?
+    null
+    :
+    <View style={styles.cellContainer}>
+      <Image style={styles.cellIcon} source={pic} />
+      <Text style={styles.cellTitle}>
+        {prefix + rowData.text + rowID}
+      </Text>
+    </View>
+  )
+}
 
  genRows = function() {
     var dataBlob = [];
@@ -147,7 +175,7 @@ export default class Listing extends Component {
 
 const styles = StyleSheet.create({
   scrollViewContainer: {
-    height: 600,
+    height: 580,
   },
   scrollView: {
     marginBottom: 100,
@@ -199,6 +227,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
     color: 'white',
-    backgroundColor: '#8bb'
+    backgroundColor: '#bbb'
   },
 });
