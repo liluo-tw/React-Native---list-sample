@@ -5,7 +5,8 @@ import {
   View,
   Text,
   Image,
-  Alert
+  Alert,
+  ScrollView
 } from "react-native";
 import React from "react";
 
@@ -15,11 +16,16 @@ type Props = {
   renderHeader?: () => any,
   renderFooter?: () => any,
   appendMoreCell?: () => void,
-  rowHasChanged?: (r1:any, r2: any) => bool,
+  rowHasChanged?: (r1: any, r2: any) => boolean,
   onRefresh?: () => any,
   refreshing?: boolean,
-  style?: any,
-}
+  style?: any
+};
+const VIEWABILITY_CONFIG = {
+  minimumViewTime: 3000,
+  viewAreaCoveragePercentThreshold: 100,
+  waitForInteraction: true
+};
 
 class FlatListPage extends React.Component {
   constructor(props: Props) {
@@ -29,21 +35,25 @@ class FlatListPage extends React.Component {
 
   render() {
     return (
-      <View>
-        <FlatList
-          horizontal={this.state.horizontal}
-          data={this.props.data}
-          numColumns={4}
-          columnWrapperStyle={styles.multiColumns}
-          refreshing={false}
-          onRefresh={()=> Alert.alert("on refresh")}
-          renderItem={({ item, index }) => this.props.renderRow(item, index)}
-        />
-      </View>
+      <FlatList
+        horizontal={this.state.horizontal}
+        data={this.props.data}
+        refreshing={false}
+        windowSize={41}
+        initialNumToRender={40}
+        disableVirtualization={false}
+        getItemLayout={(data, index) => ({
+          length: 78,
+          offset: 78 * index,
+          index
+        })}
+        onRefresh={() => Alert.alert("on refresh")}
+        renderItem={({ item, index }) => this.props.renderRow(item, index)}
+      />
     );
   }
 
- getHeader() {
+  getHeader = () => {
     return (
       <View>
         <TouchableOpacity
@@ -55,10 +65,9 @@ class FlatListPage extends React.Component {
           <Text style={{ color: "white" }}>CHANGE</Text>
         </TouchableOpacity>
       </View>
-    )
-  }
+    );
+  };
 }
-
 
 const styles = StyleSheet.create({
   flatlistBtn: {
